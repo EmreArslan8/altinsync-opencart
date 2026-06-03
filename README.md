@@ -2,7 +2,7 @@
 
 > Altın takı satan OpenCart mağazalarında ürün fiyatlarını **canlı gram altın kuruna göre, her 5 dakikada bir otomatik** güncelleyen eklenti.
 
-**🔗 Canlı Demo:** _(GitHub Pages linki buraya — Pages açılınca güncellenecek)_
+**🔗 Canlı Demo:** https://emrearslan8.github.io/altinsync-opencart/
 **📦 Kurulabilir paket:** [`altinsync.ocmod.zip`](altinsync.ocmod.zip)
 
 ---
