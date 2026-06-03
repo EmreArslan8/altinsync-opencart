@@ -93,6 +93,8 @@ class Altinsync extends \Opencart\System\Engine\Controller {
 	public function update(): void {
 		$json = [];
 
+		try {
+
 		if (!$this->user->hasPermission('modify', 'extension/altinsync/module/altinsync')) {
 			$json['error'] = 'Yetki yok';
 			$this->response->addHeader('Content-Type: application/json');
@@ -116,6 +118,10 @@ class Altinsync extends \Opencart\System\Engine\Controller {
 		$json['status']     = $report['status'];
 		$json['gram_price'] = $report['gram_price'];
 		$json['updated']    = $report['updated'];
+
+		} catch (\Throwable $e) {
+			$json = ['error' => 'İç hata: ' . $e->getMessage()];
+		}
 
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));

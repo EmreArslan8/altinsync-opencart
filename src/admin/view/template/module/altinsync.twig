@@ -137,7 +137,7 @@
 $('#form-altinsync').on('submit', function(e) {
   e.preventDefault();
   $.ajax({
-    url: '{{ save }}', type: 'post', data: $(this).serialize(), dataType: 'json',
+    url: '{{ save|raw }}'.replace(/&amp;/g, '&'), type: 'post', data: $(this).serialize(), dataType: 'json',
     beforeSend: function(){ $('button[form=form-altinsync]').prop('disabled', true); },
     complete: function(){ $('button[form=form-altinsync]').prop('disabled', false); },
     success: function(json) {
@@ -152,7 +152,7 @@ $('#btn-update').on('click', function() {
   var btn = $(this);
   btn.prop('disabled', true).html('<i class="fa-solid fa-circle-notch fa-spin"></i> Güncelleniyor...');
   $.ajax({
-    url: '{{ update }}', type: 'post', dataType: 'json',
+    url: '{{ update|raw }}'.replace(/&amp;/g, '&'), type: 'post', dataType: 'json',
     success: function(json) {
       btn.prop('disabled', false).html('<i class="fa-solid fa-bolt"></i> {{ text_update_now }}');
       if (json.success) {
