@@ -1,0 +1,171 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="float-end">
+        <button type="button" id="btn-update" class="btn btn-warning">
+          <i class="fa-solid fa-bolt"></i> {{ text_update_now }}
+        </button>
+        <button type="submit" form="form-altinsync" data-bs-toggle="tooltip" title="Kaydet" class="btn btn-primary">
+          <i class="fa-solid fa-save"></i>
+        </button>
+        <a href="{{ back }}" data-bs-toggle="tooltip" title="Geri" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+      </div>
+      <h1>{{ heading_title }}</h1>
+      <ol class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+        <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+    <div id="alert"></div>
+
+    <!-- DURUM ŞERİDİ -->
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <div class="card text-bg-dark h-100">
+          <div class="card-body">
+            <h6 class="text-warning mb-1"><i class="fa-solid fa-coins"></i> {{ text_gram_price }}</h6>
+            <h2 class="mb-0" id="gram-price">
+              {% if last_log and last_log.gram_price %}₺{{ last_log.gram_price|number_format(2, ',', '.') }}{% else %}—{% endif %}
+            </h2>
+            <small class="text-muted" id="src-name">{{ cfg.source }}</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h6 class="text-muted mb-1"><i class="fa-solid fa-clock"></i> {{ text_last_sync }}</h6>
+            <h4 class="mb-0" id="last-sync">{% if last_log %}{{ last_log.created_at }}{% else %}{{ text_never }}{% endif %}</h4>
+            <small>Cron her <b>{{ cfg.interval }}</b> dakikada çalışır</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h6 class="text-muted mb-1"><i class="fa-solid fa-ring"></i> {{ text_products }}</h6>
+            <h2 class="mb-0">{{ products|length }}</h2>
+            <small id="upd-status">
+              {% if last_log %}<span class="badge bg-success">{{ last_log.status }}</span> · son {{ last_log.updated_count }} ürün{% endif %}
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- AYARLAR -->
+      <div class="col-lg-4">
+        <div class="card">
+          <div class="card-header"><i class="fa-solid fa-gear"></i> {{ text_edit }}</div>
+          <div class="card-body">
+            <form id="form-altinsync">
+              <div class="mb-3">
+                <label class="form-label">{{ entry_status }}</label>
+                <div class="form-check form-switch">
+                  <input type="checkbox" class="form-check-input" name="status" value="1" {% if cfg.status %}checked{% endif %}>
+                  <label class="form-check-label">{{ text_status_live }}</label>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">{{ entry_source }}</label>
+                <select name="source" class="form-select">
+                  {% for s in ['Truncgil (Canlı)', 'Harem Altın API', 'Altınkaynak API', 'CollectAPI'] %}
+                  <option value="{{ s }}" {% if cfg.source == s %}selected{% endif %}>{{ s }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">{{ entry_margin }}</label>
+                <input type="number" name="margin" value="{{ cfg.margin }}" min="0" max="100" step="0.5" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">{{ entry_interval }}</label>
+                <input type="number" name="interval" value="{{ cfg.interval }}" min="1" max="60" class="form-control">
+              </div>
+              <div class="mb-0">
+                <div class="form-check form-switch">
+                  <input type="checkbox" class="form-check-input" name="vat" value="1" {% if cfg.vat %}checked{% endif %}>
+                  <label class="form-check-label">{{ entry_vat }}</label>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÜRÜNLER -->
+      <div class="col-lg-8">
+        <div class="card">
+          <div class="card-header"><i class="fa-solid fa-list"></i> {{ text_products }}</div>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>{{ column_name }}</th>
+                  <th class="text-end">{{ column_gram }}</th>
+                  <th class="text-end">{{ column_milyem }}</th>
+                  <th class="text-end">{{ column_iscilik }}</th>
+                  <th class="text-end">{{ column_price }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in products %}
+                <tr>
+                  <td>{{ p.name }} <small class="text-muted">#{{ p.product_id }}</small></td>
+                  <td class="text-end">{{ p.gram|number_format(2, ',', '.') }}</td>
+                  <td class="text-end">{{ p.milyem }}</td>
+                  <td class="text-end">₺{{ p.iscilik|number_format(0, ',', '.') }}</td>
+                  <td class="text-end fw-bold text-warning">₺{{ p.price|number_format(2, ',', '.') }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+$('#form-altinsync').on('submit', function(e) {
+  e.preventDefault();
+  $.ajax({
+    url: '{{ save }}', type: 'post', data: $(this).serialize(), dataType: 'json',
+    beforeSend: function(){ $('button[form=form-altinsync]').prop('disabled', true); },
+    complete: function(){ $('button[form=form-altinsync]').prop('disabled', false); },
+    success: function(json) {
+      $('#alert').html('');
+      if (json.success) { $('#alert').html('<div class="alert alert-success"><i class="fa-solid fa-check-circle"></i> ' + json.success + '</div>'); }
+      if (json.error) { $('#alert').html('<div class="alert alert-danger">' + json.error + '</div>'); }
+    }
+  });
+});
+
+$('#btn-update').on('click', function() {
+  var btn = $(this);
+  btn.prop('disabled', true).html('<i class="fa-solid fa-circle-notch fa-spin"></i> Güncelleniyor...');
+  $.ajax({
+    url: '{{ update }}', type: 'post', dataType: 'json',
+    success: function(json) {
+      btn.prop('disabled', false).html('<i class="fa-solid fa-bolt"></i> {{ text_update_now }}');
+      if (json.success) {
+        $('#alert').html('<div class="alert alert-success"><i class="fa-solid fa-check-circle"></i> ' + json.success + '</div>');
+        setTimeout(function(){ location.reload(); }, 1200);
+      }
+      if (json.error) { $('#alert').html('<div class="alert alert-danger">' + json.error + '</div>'); }
+    },
+    error: function() {
+      btn.prop('disabled', false).html('<i class="fa-solid fa-bolt"></i> {{ text_update_now }}');
+      $('#alert').html('<div class="alert alert-danger">Sunucu hatası</div>');
+    }
+  });
+});
+</script>
+{{ footer }}
